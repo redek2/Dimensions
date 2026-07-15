@@ -44,27 +44,21 @@ def get_combined_rotation_matrix(n, active_planes, angles_dict):
         combined = combined @ r_matrix
     return combined
 
-if __name__ == "__main__":
-    # --- TESTS FOR ISSUE #1 ---
-    square_v = generate_vertices(2)
-    square_e = generate_edges(square_v)
-    cube_v = generate_vertices(3)
-    cube_e = generate_edges(cube_v)
-    
-    print(f"\nVertices for square:\n\n{square_v}")
-    print(f"\nEdges for square:\n\n{square_e}")
-    print(f"\nVertices for cube:\n\n{cube_v}")
-    print(f"\nEdges for cube:\n\n{cube_e}")
+def project_vertices(vertices, scale, screen_center, distance = 3.0):
+    coords = vertices.copy()
+    n = coords.shape[1]
 
-    # --- TESTS FOR ISSUE #2 ---
-    print("\n" + "="*40)
-    print("ROTATION PLANES TESTING")
-    print("="*40)
+    while coords.shape[1] > 2:
+        depth = coords[:, -1]
+        coords = coords[:, :-1]
+
+        coords = coords / (distance + depth)[:, cp.newaxis]
     
-    print(f"Planes for 1D: {get_rotation_planes(1)}")
-    
-    planes_3d = get_rotation_planes(3)
-    print(f"Planes for 3D ({len(planes_3d)}): {planes_3d}")
-    
-    planes_4d = get_rotation_planes(4)
-    print(f"Planes for 4D ({len(planes_4d)}): {planes_4d}")
+    adjusted_scale = scale * (distance ** (n - 2))
+
+    screen_x = coords[:, 0] * adjusted_scale + screen_center[0]
+    screen_y = coords[:, 1] * adjusted_scale + screen_center[1]
+
+    return cp.column_stack((screen_x, screen_y))
+
+if __name__ == "__main__":
