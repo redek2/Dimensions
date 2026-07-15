@@ -20,6 +20,29 @@ def get_rotation_planes(dimensions):
     combinations_list = list(combinations(range(dimensions), 2))
     return combinations_list
 
+def create_plane_rotation_matrix(n, plane, angle):
+    rotation_matrix = cp.eye(n)
+    c = cp.cos(angle)
+    s = cp.sin(angle)
+    i, j = plane
+    rotation_matrix[i, i] = c
+    rotation_matrix[j, j] = c
+    rotation_matrix[i, j] = -s
+    rotation_matrix[j, i] = s
+    return rotation_matrix
+
+def get_combined_rotation_matrix(n, active_planes, angles_dict):
+    combined = cp.eye(n, dtype=cp.float32)
+
+    for plane in active_planes:
+        angle = angles_dict.get(plane, 0.0)
+
+        if angle == 0.0:
+            continue
+
+        r_matrix = create_plane_rotation_matrix(n, plane, angle)
+        combined = combined @ r_matrix
+    return combined
 
 if __name__ == "__main__":
     # --- TESTS FOR ISSUE #1 ---
